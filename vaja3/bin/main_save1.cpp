@@ -1,0 +1,162 @@
+#include <iostream>
+#include <windows.h>
+#include <string>
+#include <stdlib.h>
+#include <iterator>
+#include <list>
+#include <array>
+#include <memory>
+#include <stdexcept>
+using namespace std;
+
+class UI{
+private:
+    short int _x = 0;
+    short int _y = 0;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    //string _seznam[1024];
+    list <string> _seznam;
+    int sc = 0;
+    int _index = 0;
+    string mapa = "test";
+	void dodaj_izhod(){
+		_seznam.push_back ((string)"izhod");
+	}
+
+public:
+    string seznam_get(int x_pos){
+        std::list<std::string>::iterator it = _seznam.begin();
+        std::advance(it, x_pos);
+        return *it;
+    }
+
+    void set_cp(){
+        COORD pos = {_x, _y};
+        SetConsoleCursorPosition(hConsole, pos);
+        return;
+    }
+    void out(string out_p = "", int barva = 7){
+        SetConsoleTextAttribute(hConsole, barva);
+        WriteConsole(hConsole, out_p.c_str(), out_p.length(), NULL, NULL);
+        return;
+    }
+    void x(int x_input){
+        _x = x_input;
+    }
+    void y(int y_input){
+        _y = y_input;
+    }
+    void xy(int x_input, int y_input){
+        _x = x_input;
+        _y = y_input;
+    }
+    void seznam_dodaj(string niz){
+        _seznam.push_back (niz);
+    }
+    void izpisi_seznam(){
+        out("Mitja Klajnsek\n\n");
+        int barva = 10;
+        for(int i = 0; i < _seznam.size(); i++){
+            if(_index==i){
+                out(seznam_get(i) + '\n', barva+13);
+            }
+            else{
+                out(seznam_get(i) + '\n', barva);
+            }
+            barva++;
+            if(barva>=15){
+                barva=10;
+            }
+        }
+        out();
+        return;
+    }
+    void izberi(int smer = 0){
+        system("cls");
+        _index += smer;
+        if(_index==-1){
+            _index=0;
+        }
+        else if(_index >= _seznam.size()){
+            _index-=smer;
+        }
+        izpisi_seznam();
+        x(seznam_get(_index).size());
+        y(_index+2);
+        set_cp();
+        Sleep(200);
+        return;
+    }
+    int loop(){
+        bool dela = true;
+        while(dela == true){
+            if(GetAsyncKeyState(VK_UP)!=0){
+                izberi(-1);
+            }
+            if(GetAsyncKeyState(VK_DOWN)!=0){
+                izberi(1);
+            }
+            if(GetAsyncKeyState(VK_ESCAPE)!=0){
+            	break;
+			}
+			if(GetAsyncKeyState(VK_RETURN)!=0){
+				return _index;
+			}
+        }
+        return -1;
+    }
+    void INIT(){
+    	dodaj_izhod();
+	}
+	std::string cmd_komanda(const char* cmd) {
+   		std::array<char, 128> buffer;
+   		std::string result;
+  		std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+ 		if (!pipe) {
+   		    throw std::runtime_error("popen() failed!");
+  		}
+  		while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+ 		    result += buffer.data();
+ 		}
+ 		return result;
+	}
+	void izpisi_datoteke_v_seznam() {
+		string ukaz = "dir " + mapa;
+		string dir = cmd_komanda(ukaz.c_str());
+		string datoteke[1024];
+		string _datoteke[1024];
+		int start = 0;
+		int sc = 0;
+		int element = 0;
+		for(int i = 0; i < dir.length(); i++){
+			switch(dir.at(i)){
+				case '\n':{
+					element++;
+					break;
+				}
+				default:{
+					_datoteke[element]+=dir.at(i);
+					break;
+				}
+			}
+		}
+		for(int i = 7; i < element-2; i++){
+			datoteke[i]=_datoteke[i].substr(36, _datoteke[i].length()-1);
+		}
+		for(int i = 7; i < element-2; i++){
+			_seznam.push_back (datoteke[i]);
+		}
+		return;
+	}
+};
+UI UI;
+
+
+int main()
+{
+//	UI.INIT();
+    UI.izpisi_datoteke_v_seznam();
+    UI.izpisi_seznam();
+  //  UI.loop();
+    return 0;
+}

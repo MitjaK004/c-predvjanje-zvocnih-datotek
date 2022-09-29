@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1663319955 source:c:\users\e13-dm-13\desktop\03vaja\vaja3\main.cpp
+	<iostream>
+	<windows.h>
+	<string>
+	<stdlib.h>
+	<iterator>
+	<list>
+
